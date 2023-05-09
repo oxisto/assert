@@ -29,12 +29,29 @@ type Want[T any] func(*testing.T, T) bool
 
 // Equals compares expected to actual and returns true if they are equal. If the
 // expected type is a protobuf message, [proto.Equals] will be used for
-// comparison Otherwise, the test fails (but continues) and false is returned.
+// comparison. Otherwise, the test fails (but continues) and false is returned.
 func Equals[T comparable](t *testing.T, expected T, actual T) (ok bool) {
 	if msg, isMsg := any(expected).(proto.Message); isMsg {
 		ok = proto.Equal(msg, any(actual).(proto.Message))
 	} else {
 		ok = expected == actual
+	}
+
+	if !ok {
+		t.Errorf("%T = %v, want %v", actual, actual, expected)
+	}
+
+	return ok
+}
+
+// NotEquals compares expected to actual and returns true if they are not equal.
+// If the expected type is a protobuf message, [proto.Equals] will be used for
+// comparison. Otherwise, the test fails (but continues) and false is returned.
+func NotEquals[T comparable](t *testing.T, expected T, actual T) (ok bool) {
+	if msg, isMsg := any(expected).(proto.Message); isMsg {
+		ok = !proto.Equal(msg, any(actual).(proto.Message))
+	} else {
+		ok = expected != actual
 	}
 
 	if !ok {
@@ -65,7 +82,7 @@ func NoError(t *testing.T, err error) bool {
 // NotNil asserts that value is not nil. If it fails, we fatally fail the test,
 // because we will probably run into a panic otherwise anyway.
 func NotNil(t *testing.T, value any) bool {
-	ok := !Equals(t, nil, value)
+	ok := NotEquals(t, nil, &value)
 	if !ok {
 		// We cannot continue
 		t.Fatalf("variable of type %T should not be nil", value)
