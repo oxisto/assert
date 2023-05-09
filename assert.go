@@ -61,3 +61,20 @@ func Is[T any](t *testing.T, value any) T {
 func NoError(t *testing.T, err error) bool {
 	return Equals(t, nil, err)
 }
+
+// NotNil asserts that value is not nil. If it fails, we fatally fail the test,
+// because we will probably run into a panic otherwise anyway.
+func NotNil(t *testing.T, value any) bool {
+	ok := Equals(t, nil, value)
+	if !ok {
+		// We cannot continue
+		t.Fatalf("variable of type %T should not be nil", value)
+	}
+
+	return ok
+}
+
+// NotNil asserts that value is nil
+func Nil(t *testing.T, value any) bool {
+	return !Equals(t, nil, value)
+}
