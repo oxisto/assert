@@ -18,6 +18,7 @@
 package assert
 
 import (
+	"errors"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -31,11 +32,21 @@ type Want[T any] func(*testing.T, T) bool
 // expected type is a protobuf message, [proto.Equals] will be used for
 // comparison. Otherwise, the test fails (but continues) and false is returned.
 func Equals[T comparable](t *testing.T, expected T, actual T) (ok bool) {
-	if msg, isMsg := any(expected).(proto.Message); isMsg {
-		ok = proto.Equal(msg, any(actual).(proto.Message))
-	} else {
-		ok = expected == actual
-	}
+	return EqualsFunc(t, expected, actual, func(expected T, actual T) bool {
+		if msg, isMsg := any(expected).(proto.Message); isMsg {
+			return proto.Equal(msg, any(actual).(proto.Message))
+		} else {
+			return expected == actual
+		}
+	})
+}
+
+// Equals compares expected to actual using the equals function and returns true
+// if they are equal. If the expected type is a protobuf message, [proto.Equals]
+// will be used for comparison. Otherwise, the test fails (but continues) and
+// false is returned.
+func EqualsFunc[T comparable](t testing.TB, expected T, actual T, equals func(expected T, actual T) bool) (ok bool) {
+	ok = equals(expected, actual)
 
 	if !ok {
 		t.Errorf("%T = %v, want %v", actual, actual, expected)
@@ -94,4 +105,11 @@ func NotNil(t *testing.T, value any) bool {
 // NotNil asserts that value is nil
 func Nil(t *testing.T, value any) bool {
 	return Equals(t, nil, value)
+}
+
+// ErrorIs asserts that an error is the expected error using [errors.Is].
+func ErrorIs(t testing.TB, expected error, actual error) bool {
+	return EqualsFunc(t, expected, actual, func(expected error, actual error) bool {
+		return errors.Is(actual, expected)
+	})
 }
