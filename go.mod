@@ -1,5 +1,7 @@
 module github.com/oxisto/assert
 
-go 1.20
+go 1.21
 
-require google.golang.org/protobuf v1.34.1
+toolchain go1.23.3
+
+require google.golang.org/protobuf v1.35.2
