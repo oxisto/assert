@@ -1,4 +1,4 @@
-// Copyright 2023 Christian Banse
+// Copyright 2023-2024 Christian Banse
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import (
 	"errors"
 	"testing"
 
-	"google.golang.org/protobuf/proto"
+	"github.com/google/go-cmp/cmp"
 )
 
 // Want is a function type that can be executed to chain several assertions
@@ -31,15 +31,11 @@ type Want[T any] func(*testing.T, T) bool
 // Equals compares expected to actual and returns true if they are equal. If the
 // expected type is a protobuf message, [proto.Equals] will be used for
 // comparison. Otherwise, the test fails (but continues) and false is returned.
-func Equals[T comparable](t *testing.T, expected T, actual T) (ok bool) {
+func Equals[T comparable](t *testing.T, expected T, actual T, opts ...cmp.Option) (ok bool) {
 	t.Helper()
 
 	return EqualsFunc(t, expected, actual, func(expected T, actual T) bool {
-		if msg, isMsg := any(expected).(proto.Message); isMsg {
-			return proto.Equal(msg, any(actual).(proto.Message))
-		} else {
-			return expected == actual
-		}
+		return cmp.Equal(expected, actual, opts...)
 	})
 }
 
@@ -62,14 +58,10 @@ func EqualsFunc[T comparable](t testing.TB, expected T, actual T, equals func(ex
 // NotEquals compares expected to actual and returns true if they are not equal.
 // If the expected type is a protobuf message, [proto.Equals] will be used for
 // comparison. Otherwise, the test fails (but continues) and false is returned.
-func NotEquals[T comparable](t *testing.T, expected T, actual T) (ok bool) {
+func NotEquals[T comparable](t *testing.T, expected T, actual T, opts ...cmp.Option) (ok bool) {
 	t.Helper()
 
-	if msg, isMsg := any(expected).(proto.Message); isMsg {
-		ok = !proto.Equal(msg, any(actual).(proto.Message))
-	} else {
-		ok = expected != actual
-	}
+	ok = cmp.Equal(expected, actual, opts...)
 
 	if !ok {
 		t.Errorf("%T = %v, want %v", actual, actual, expected)
