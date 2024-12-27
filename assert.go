@@ -61,10 +61,10 @@ func EqualsFunc[T comparable](t testing.TB, expected T, actual T, equals func(ex
 func NotEquals[T comparable](t *testing.T, expected T, actual T, opts ...cmp.Option) (ok bool) {
 	t.Helper()
 
-	ok = cmp.Equal(expected, actual, opts...)
+	ok = !cmp.Equal(expected, actual, opts...)
 
 	if !ok {
-		t.Errorf("%T = %v, want %v", actual, actual, expected)
+		t.Errorf("%T != %v, want %v", actual, actual, expected)
 	}
 
 	return ok
