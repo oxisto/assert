@@ -32,6 +32,8 @@ type Want[T any] func(*testing.T, T) bool
 // expected type is a protobuf message, [proto.Equals] will be used for
 // comparison. Otherwise, the test fails (but continues) and false is returned.
 func Equals[T comparable](t *testing.T, expected T, actual T) (ok bool) {
+	t.Helper()
+
 	return EqualsFunc(t, expected, actual, func(expected T, actual T) bool {
 		if msg, isMsg := any(expected).(proto.Message); isMsg {
 			return proto.Equal(msg, any(actual).(proto.Message))
@@ -46,6 +48,8 @@ func Equals[T comparable](t *testing.T, expected T, actual T) (ok bool) {
 // will be used for comparison. Otherwise, the test fails (but continues) and
 // false is returned.
 func EqualsFunc[T comparable](t testing.TB, expected T, actual T, equals func(expected T, actual T) bool) (ok bool) {
+	t.Helper()
+
 	ok = equals(expected, actual)
 
 	if !ok {
@@ -59,6 +63,8 @@ func EqualsFunc[T comparable](t testing.TB, expected T, actual T, equals func(ex
 // If the expected type is a protobuf message, [proto.Equals] will be used for
 // comparison. Otherwise, the test fails (but continues) and false is returned.
 func NotEquals[T comparable](t *testing.T, expected T, actual T) (ok bool) {
+	t.Helper()
+
 	if msg, isMsg := any(expected).(proto.Message); isMsg {
 		ok = !proto.Equal(msg, any(actual).(proto.Message))
 	} else {
@@ -76,6 +82,8 @@ func NotEquals[T comparable](t *testing.T, expected T, actual T) (ok bool) {
 // casted to T. If it fails, we fatally fail the test, because we cannot
 // continue.
 func Is[T any](t *testing.T, value any) T {
+	t.Helper()
+
 	cast, ok := value.(T)
 	if !ok {
 		// We cannot continue
@@ -93,6 +101,8 @@ func NoError(t *testing.T, err error) bool {
 // NotNil asserts that value is not nil. If it fails, we fatally fail the test,
 // because we will probably run into a panic otherwise anyway.
 func NotNil(t *testing.T, value any) bool {
+	t.Helper()
+
 	ok := NotEquals(t, nil, &value)
 	if !ok {
 		// We cannot continue
@@ -104,11 +114,15 @@ func NotNil(t *testing.T, value any) bool {
 
 // NotNil asserts that value is nil
 func Nil(t *testing.T, value any) bool {
+	t.Helper()
+
 	return Equals(t, nil, value)
 }
 
 // ErrorIs asserts that an error is the expected error using [errors.Is].
 func ErrorIs(t testing.TB, expected error, actual error) bool {
+	t.Helper()
+
 	return EqualsFunc(t, expected, actual, func(expected error, actual error) bool {
 		return errors.Is(actual, expected)
 	})
