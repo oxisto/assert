@@ -28,10 +28,8 @@ import (
 // together.
 type Want[T any] func(*testing.T, T) bool
 
-// Equals compares expected to actual and returns true if they are equal. If the
-// expected type is a protobuf message, [proto.Equals] will be used for
-// comparison. Otherwise, the test fails (but continues) and false is returned.
-func Equals[T comparable](t *testing.T, expected T, actual T, opts ...cmp.Option) (ok bool) {
+// Equals compares expected to actual and returns true if they are equal.
+func Equals[T any](t *testing.T, expected T, actual T, opts ...cmp.Option) (ok bool) {
 	t.Helper()
 
 	return EqualsFunc(t, expected, actual, func(expected T, actual T) bool {
@@ -40,10 +38,8 @@ func Equals[T comparable](t *testing.T, expected T, actual T, opts ...cmp.Option
 }
 
 // Equals compares expected to actual using the equals function and returns true
-// if they are equal. If the expected type is a protobuf message, [proto.Equals]
-// will be used for comparison. Otherwise, the test fails (but continues) and
-// false is returned.
-func EqualsFunc[T comparable](t testing.TB, expected T, actual T, equals func(expected T, actual T) bool) (ok bool) {
+// if they are equal.
+func EqualsFunc[T any](t testing.TB, expected T, actual T, equals func(expected T, actual T) bool) (ok bool) {
 	t.Helper()
 
 	ok = equals(expected, actual)
@@ -56,9 +52,7 @@ func EqualsFunc[T comparable](t testing.TB, expected T, actual T, equals func(ex
 }
 
 // NotEquals compares expected to actual and returns true if they are not equal.
-// If the expected type is a protobuf message, [proto.Equals] will be used for
-// comparison. Otherwise, the test fails (but continues) and false is returned.
-func NotEquals[T comparable](t *testing.T, expected T, actual T, opts ...cmp.Option) (ok bool) {
+func NotEquals[T any](t *testing.T, expected T, actual T, opts ...cmp.Option) (ok bool) {
 	t.Helper()
 
 	ok = !cmp.Equal(expected, actual, opts...)
